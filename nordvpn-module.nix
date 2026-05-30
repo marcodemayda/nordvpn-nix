@@ -38,6 +38,7 @@ let
           url = "https://repo.nordvpn.com/deb/nordvpn/debian/pool/main/n/nordvpn/nordvpn_${version}_amd64.deb";
           # MARK: hash here.
           hash = "sha256-bekJOzhLGwFsYRuPagANwUduyCufaU4XoJPwWoBniR8=";
+          # hash = "sha256-0000000000000000000000000000000000000000000=";
         };
 
         buildInputs = [
