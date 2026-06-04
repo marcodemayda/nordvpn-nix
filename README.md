@@ -43,12 +43,19 @@ get the version number e.g. `4.5.0` and replace the version in:
 version = "4.5.0";
 ```
 
-You then have to match a hash to the version:
+You then have to match a hash to the version.
+```
+nix store prefetch-file --hash-type sha256 \
+  https://repo.nordvpn.com/deb/nordvpn/debian/pool/main/n/nordvpn/nordvpn_<${version}>_amd64.deb
+```
+
+Alternatively you can build witha dummy hash, and Nix will throw
+the correct hash in the rebuild error.
 
 ```nix
 # MARK: hash here.
-hash = "sha256-bekJOzhLGwFsYRuPagANwUduyCufaU4XoJPwWoBniR8=";
-# hash = "sha256-0000000000000000000000000000000000000000000=";
+#hash = "sha256-bekJOzhLGwFsYRuPagANwUduyCufaU4XoJPwWoBniR8=";
+ hash = "sha256-0000000000000000000000000000000000000000000=";
 ```
 
 If you build with the fake one (uncoment it and comment the other),
