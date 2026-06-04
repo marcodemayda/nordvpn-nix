@@ -9,6 +9,8 @@ let
   # MARK: Modify Values Here
   version = "4.5.0";
 
+  dummyHash = "sha256-0000000000000000000000000000000000000000000=";
+
   cliUrl = "https://repo.nordvpn.com/deb/nordvpn/debian/pool/main/n/nordvpn/nordvpn_${version}_amd64.deb";
   cliHash = "sha256-bekJOzhLGwFsYRuPagANwUduyCufaU4XoJPwWoBniR8=";
 
@@ -167,21 +169,35 @@ let
   };
 
 in
+with lib;
 {
   options.services.nordvpn = {
-    enable = lib.mkEnableOption "NordVPN daemon and CLI";
+    enable = mkEnableOption "NordVPN daemon and CLI";
 
-    enableGui = lib.mkOption {
-      type = lib.types.bool;
-      default = true;
+    users = mkOption {
+      type = types.listOf types.str;
+      default = [ ];
+      description = ''
+        Which users to add to the "nordvpn" group.
+        Your current user must be in the group for a successful
+        login. If you prefer to set this elsewhere, like
+        `users.users.<username>.extraGroups`, set this to `[]`.
+        Keep in mind that updating groups may require reboot/re-login.
+      '';
+      example = [ "alice" ];
+    };
+
+    enableGui = mkOption {
+      type = types.bool;
+      default = false;
       description = ''
         Whether to install the official NordVPN GUI app (Flutter/GTK3).
         Set to false for a CLI-only install.
       '';
     };
 
-    autoStart = lib.mkOption {
-      type = lib.types.bool;
+    autoStart = mkOption {
+      type = types.bool;
       default = false;
       description = ''
         Whether to start nordvpnd at boot. Defaults to false (on-demand)
@@ -193,6 +209,7 @@ in
 
     enableResolved = lib.mkOption {
       type = lib.types.bool;
+      # TODO change to nul or
       default = true;
       description = ''
         Enable systemd-resolved. Required on NixOS — without it, the
@@ -205,13 +222,44 @@ in
     };
 
     setReversePath = lib.mkOption {
-      type = lib.types.bool;
-      default = true;
+      type = lib.types.nullOr (
+        lib.types.either lib.types.bool (
+          lib.types.enum [
+            "strict"
+            "loose"
+          ]
+        )
+      );
+      default = "loose";
       description = ''
-        Set `networking.firewall.checkReversePath = "loose"`. NordVPN's
+        Set `networking.firewall.checkReversePath`. NordVPN's
         asymmetric routing through the tunnel is dropped by default strict
-        rp_filter. Disable only if you handle this yourself.
+        rp_filter. Thus loose or false is required for proper functioning.
       '';
+    };
+
+    openFirewall = mkOption {
+      type = types.bool;
+      default = false;
+      description = ''
+        Whether to open the firewall for NordVPN.
+        This add ports TCP 443 and UDP 1194 to the respective allowlists.
+      '';
+      example = true;
+    };
+
+    mtu = mkOption {
+      type = types.nullOr types.int;
+      default = null;
+      description = ''
+        MTU (max network package size) - smaller means more fragmentation,
+        but larger packages can fail to transmit. Leave empty to use the default,
+        set to something like `1280` if connection issues occur.
+        (Hint: you can test if MTU is low enough using `ping -M do -s 1280 1.1.1.1`,
+        replacing `1280` by the MTU you want to try. If too large, it will
+        fail with `ping: sendmsg: Message too long`.)
+      '';
+      example = 1280;
     };
 
   };
@@ -219,9 +267,26 @@ in
   config = lib.mkIf cfg.enable {
     environment.systemPackages = [ nordVpnPkg ] ++ lib.optional cfg.enableGui nordVpnGui;
 
-    users.groups.nordvpn = { };
+    # if services.nordvpn.users is defined, add the specified users to the nordvpn group,
+    # otherwise ensure group exists by setting users.groups.nordvpn = {}
+    # changed to simpler on AI suggestion. For the (quickly accessible) record: used to be
+    # members = mkIf (config.services.nordvpn.users != [ ]) config.services.nordvpn.users;
+    users.groups.nordvpn = {
+      members = config.services.nordvpn.users;
+    };
 
-    networking.firewall.checkReversePath = lib.mkIf cfg.setReversePath "loose";
+    networking.firewall = {
+      allowedTCPPorts = mkIf config.services.nordvpn.openFirewall [ 443 ];
+      allowedUDPPorts = mkIf config.services.nordvpn.openFirewall [ 1194 ];
+
+      checkReversePath = mkIf (
+        config.services.nordvpn.checkReversePath != null
+      ) config.services.nordvpn.checkReversePath;
+    };
+
+    networking.interfaces = mkIf (config.services.nordvpn.mtu != null) {
+      nordlynx.mtu = config.services.nordvpn.mtu;
+    };
 
     services.resolved.enable = lib.mkIf cfg.enableResolved true;
 
