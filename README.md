@@ -58,3 +58,7 @@ nix should fail the build, and give you the correct hash in the error message.
 
 Both I and the original author (chomes) are by
 self-admitedly inexperienced with making Nix derivation.
+
+Lallapallooza and morettimarco contributions (seem to) have heavy AI usage.
+I've audited (insofar as I'm able), and explicitly comment on any AI code
+that _**I** introduced myself_.
