@@ -171,11 +171,11 @@ let
 in
 with lib;
 {
-  options.services.nordvpn = {
+  options.services.nordvpn = with types; {
     enable = mkEnableOption "NordVPN daemon and CLI";
 
     users = mkOption {
-      type = types.listOf types.str;
+      type = listOf str;
       default = [ ];
       description = ''
         Which users to add to the "nordvpn" group.
@@ -188,7 +188,7 @@ with lib;
     };
 
     enableGui = mkOption {
-      type = types.bool;
+      type = bool;
       default = false;
       description = ''
         Whether to install the official NordVPN GUI app (Flutter/GTK3).
@@ -197,7 +197,7 @@ with lib;
     };
 
     autoStart = mkOption {
-      type = types.bool;
+      type = bool;
       default = false;
       description = ''
         Whether to start nordvpnd at boot. Defaults to false (on-demand)
@@ -207,8 +207,8 @@ with lib;
       '';
     };
 
-    enableResolved = lib.mkOption {
-      type = lib.types.bool;
+    enableResolved = mkOption {
+      type = bool;
       # TODO maybe change to nul or
       default = true;
       description = ''
@@ -221,14 +221,12 @@ with lib;
       '';
     };
 
-    setReversePath = lib.mkOption {
-      type = lib.types.nullOr (
-        lib.types.either lib.types.bool (
-          lib.types.enum [
-            "strict"
-            "loose"
-          ]
-        )
+    setReversePath = mkOption {
+      type = nullOr (
+        either bool (enum [
+          "strict"
+          "loose"
+        ])
       );
       default = "loose";
       description = ''
@@ -239,7 +237,7 @@ with lib;
     };
 
     openFirewall = mkOption {
-      type = types.bool;
+      type = bool;
       default = false;
       description = ''
         Whether to open the firewall for NordVPN.
@@ -249,7 +247,7 @@ with lib;
     };
 
     mtu = mkOption {
-      type = types.nullOr types.int;
+      type = nullOr int;
       default = null;
       description = ''
         MTU (max network package size) - smaller means more fragmentation,
@@ -264,8 +262,8 @@ with lib;
 
   };
 
-  config = lib.mkIf cfg.enable {
-    environment.systemPackages = [ nordVpnPkg ] ++ lib.optional cfg.enableGui nordVpnGui;
+  config = mkIf cfg.enable {
+    environment.systemPackages = [ nordVpnPkg ] ++ optional cfg.enableGui nordVpnGui;
 
     # if services.nordvpn.users is defined, add the specified users to the nordvpn group,
     # otherwise ensure group exists by setting users.groups.nordvpn = {}
@@ -286,7 +284,7 @@ with lib;
       nordlynx.mtu = config.services.nordvpn.mtu;
     };
 
-    services.resolved.enable = lib.mkIf cfg.enableResolved true;
+    services.resolved.enable = mkIf cfg.enableResolved true;
 
     systemd.services.nordvpn = {
       description = "NordVPN daemon";
