@@ -326,7 +326,7 @@ with lib;
         Type = "oneshot";
         RemainAfterExit = true;
 
-        # AI suggests this instead, but i'm not conviced:
+        # AI suggests this instead, TODO investigate
         #       ExecStart = pkgs.writeShellScript "nordvpn-apply-settings" ''
         # set -euo pipefail
 
