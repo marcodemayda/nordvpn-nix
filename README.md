@@ -62,7 +62,7 @@ And the modify back as needed
 
 ### Notice
 
-Both I and the original author (chomes) are by
+Both I and the original author (chomes) are
 self-admitedly inexperienced with making Nix derivation.
 
 Lallapallooza and morettimarco contributions (seem to) have heavy AI usage.
