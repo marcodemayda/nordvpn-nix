@@ -1,241 +1,361 @@
-# Modified from various upstreams; see NOTICE for lineage and attribution.
-
 {
   config,
   lib,
   pkgs,
   ...
 }:
+
 let
-  nordVpnPkg = pkgs.callPackage (
-    {
-      autoPatchelfHook,
-      buildFHSEnvChroot,
-      dpkg,
-      fetchurl,
-      lib,
-      stdenv,
-      sysctl,
-      iptables,
-      iproute2,
-      procps,
-      cacert,
-      sqlite,
-      libnl,
-      libcap_ng,
-      libxml2,
-      libidn2,
-      zlib,
-      wireguard-tools,
-    }:
-    let
-      pname = "nordvpn";
-      # MARK: version nr here
-      version = "5.0.0";
+  # MARK: Modify Values Here
+  version = "5.0.0";
 
-      nordVPNBase = stdenv.mkDerivation {
-        inherit pname version;
+  dummyHash = "sha256-0000000000000000000000000000000000000000000=";
 
-        src = fetchurl {
-          url = "https://repo.nordvpn.com/deb/nordvpn/debian/pool/main/n/nordvpn/nordvpn_${version}_amd64.deb";
-          # MARK: hash here.
-          hash = "sha256-F7/5WAAGaX3IJ3v/psp9cyWGs7kn2XOiCSN2Q6zeRAY=";
-          # hash = "sha256-0000000000000000000000000000000000000000000=";
-        };
+  cliUrl = "https://repo.nordvpn.com/deb/nordvpn/debian/pool/main/n/nordvpn/nordvpn_${version}_amd64.deb";
+  cliHash = "sha256-F7/5WAAGaX3IJ3v/psp9cyWGs7kn2XOiCSN2Q6zeRAY=";
 
-        buildInputs = [
-          libxml2
-          libidn2
-          libnl
-          libcap_ng
-          sqlite
-        ];
-        nativeBuildInputs = [
-          dpkg
-          autoPatchelfHook
-          stdenv.cc.cc.lib
-        ];
+  guiUrl = "https://repo.nordvpn.com/deb/nordvpn/debian/pool/main/n/nordvpn-gui/nordvpn-gui_${version}_amd64.deb";
+  guiHash = "sha256-Obdnf3Rp0gfbRKa2awz6lMN1z0J6KyL09jTivQej/Eo=";
 
-        dontConfigure = true;
-        dontBuild = true;
+  cfg = config.services.nordvpn;
 
-        unpackPhase = ''
-          runHook preUnpack
-          dpkg --extract $src .
-          runHook postUnpack
-        '';
+  # -- CLI + daemon (FHS-wrapped) ----------------------------------------
+  nordVpnBase = pkgs.stdenv.mkDerivation {
+    pname = "nordvpn-base";
+    inherit version cliHash;
+    src = pkgs.fetchurl {
+      url = cliUrl;
+      hash = cliHash;
+    };
+    buildInputs = with pkgs; [
+      libxml2
+      libidn2
+      libnl
+      libcap_ng
+      sqlite
+    ];
+    nativeBuildInputs = with pkgs; [
+      dpkg
+      autoPatchelfHook
+      stdenv.cc.cc.lib
+    ];
+    dontConfigure = true;
+    dontBuild = true;
+    unpackPhase = ''
+      runHook preUnpack
+      dpkg --extract $src .
+      runHook postUnpack
+    '';
+    installPhase = ''
+      runHook preInstall
+      mkdir -p $out
+      mv usr/* $out/
+      mv var/ $out/
+      mv etc/ $out/
+      runHook postInstall
+    '';
+    meta.license = lib.licenses.unfreeRedistributable;
+  };
 
-        installPhase = ''
-          runHook preInstall
-          mkdir -p $out
-          mv usr/* $out/
-          mv var/ $out/
-          mv etc/ $out/
-          runHook postInstall
-        '';
-      };
+  nordVpnDaemon = pkgs.buildFHSEnv {
+    name = "nordvpnd";
+    runScript = "nordvpnd";
+    targetPkgs =
+      _: with pkgs; [
+        sqlite
+        nordVpnBase
+        sysctl
+        iptables
+        iproute2
+        procps
+        cacert
+        libxml2
+        libnl
+        libcap_ng
+        libidn2
+        zlib
+        wireguard-tools
+      ];
+  };
 
-      nordVPNfhs = buildFHSEnvChroot {
-        name = "nordvpnd";
-        runScript = "nordvpnd";
+  nordVpnPkg = pkgs.stdenv.mkDerivation {
+    pname = "nordvpn";
+    inherit version;
+    dontUnpack = true;
+    dontConfigure = true;
+    dontBuild = true;
+    installPhase = ''
+      runHook preInstall
+      mkdir -p $out/bin $out/share
+      ln -s ${nordVpnBase}/bin/nordvpn $out/bin
+      ln -s ${nordVpnDaemon}/bin/nordvpnd $out/bin
+      ln -s ${nordVpnBase}/share/* $out/share/
+      ln -s ${nordVpnBase}/var $out/
+      runHook postInstall
+    '';
+    meta = with lib; {
+      description = "CLI client for NordVPN";
+      homepage = "https://www.nordvpn.com";
+      license = licenses.unfreeRedistributable;
+      platforms = [ "x86_64-linux" ];
+    };
+  };
 
-        # hardcoded path to /sbin/ip
-        targetPkgs = pkgs: [
-          sqlite
-          nordVPNBase
-          sysctl
-          iptables
-          iproute2
-          procps
-          cacert
-          libxml2
-          libnl
-          libcap_ng
-          libidn2
-          zlib
-          wireguard-tools
-        ];
-      };
-    in
-    stdenv.mkDerivation {
-      inherit pname version;
+  # -- GUI (Flutter/GTK3, FHS-wrapped) -----------------------------------
+  nordVpnGuiBase = pkgs.stdenv.mkDerivation {
+    pname = "nordvpn-gui-base";
+    inherit version guiHash;
+    src = pkgs.fetchurl {
+      url = guiUrl;
+      hash = guiHash;
+    };
+    nativeBuildInputs = [ pkgs.dpkg ];
+    dontConfigure = true;
+    dontBuild = true;
+    unpackPhase = ''
+      runHook preUnpack
+      dpkg --extract $src .
+      runHook postUnpack
+    '';
+    installPhase = ''
+      runHook preInstall
+      mkdir -p $out
+      cp -r opt/nordvpn-gui/* $out/
+      mkdir -p $out/share
+      cp -r usr/share/* $out/share/
+      runHook postInstall
+    '';
+    meta.license = lib.licenses.unfreeRedistributable;
+  };
 
-      dontUnpack = true;
-      dontConfigure = true;
-      dontBuild = true;
+  nordVpnGui = pkgs.buildFHSEnv {
+    name = "nordvpn-gui";
+    runScript = "${nordVpnGuiBase}/nordvpn-gui";
+    targetPkgs =
+      _: with pkgs; [
+        nordVpnGuiBase
+        gtk3
+        gdk-pixbuf
+        pango
+        cairo
+        harfbuzz
+        atk
+        glib
+        libx11
+        libxcursor
+        libxrandr
+        libxi
+        libxext
+        libxcomposite
+        libxdamage
+        libxfixes
+        libxtst
+        libepoxy
+        fontconfig
+        freetype
+        libGL
+        mesa
+        dbus
+        stdenv.cc.cc.lib
+      ];
+    extraInstallCommands = ''
+      mkdir -p $out/share/applications $out/share/icons
+      cp -r ${nordVpnGuiBase}/share/applications/* $out/share/applications/ 2>/dev/null || true
+      cp -r ${nordVpnGuiBase}/share/icons/* $out/share/icons/ 2>/dev/null || true
+      # Fix Exec path in .desktop file
+      substituteInPlace $out/share/applications/nordvpn-gui.desktop \
+        --replace-fail "Exec=nordvpn-gui" "Exec=$out/bin/nordvpn-gui"
+    '';
+  };
 
-      installPhase = ''
-        runHook preInstall
-        mkdir -p $out/bin $out/share
-        ln -s ${nordVPNBase}/bin/nordvpn $out/bin
-        ln -s ${nordVPNfhs}/bin/nordvpnd $out/bin
-        ln -s ${nordVPNBase}/share/* $out/share/
-        ln -s ${nordVPNBase}/var $out/
-        runHook postInstall
-      '';
-
-      meta = with lib; {
-        description = "CLI client for NordVPN";
-        homepage = "https://www.nordvpn.com";
-        license = licenses.unfreeRedistributable;
-        maintainers = with maintainers; [ dr460nf1r3 ];
-        platforms = [ "x86_64-linux" ];
-      };
-    }
-  ) { };
 in
 with lib;
 {
-  options.services.nordvpn.enable = mkOption {
-    type = types.bool;
-    default = false;
-    description = ''
-      Whether to enable the NordVPN daemon.
-    '';
+  options.services.nordvpn = {
+    enable = mkEnableOption "NordVPN daemon and CLI";
+
+    users = mkOption {
+      type = types.listOf types.str;
+      default = [ ];
+      description = ''
+        Which users to add to the "nordvpn" group.
+        Your current user must be in the group for a successful
+        login. If you prefer to set this elsewhere, like
+        `users.users.<username>.extraGroups`, set this to `[]`.
+        Keep in mind that updating groups may require reboot/re-login.
+      '';
+      example = [ "alice" ];
+    };
+
+    enableGui = mkOption {
+      type = types.bool;
+      default = false;
+      description = ''
+        Whether to install the official NordVPN GUI app (Flutter/GTK3).
+        Set to false for a CLI-only install.
+      '';
+    };
+
+    autoStart = mkOption {
+      type = types.bool;
+      default = false;
+      description = ''
+        Whether to start nordvpnd at boot. Defaults to false (on-demand)
+        because typical laptop usage starts the VPN per session. Set to
+        true together with `nordvpn set autoconnect on <country>` for
+        always-on VPN.
+      '';
+    };
+
+    enableResolved = lib.mkOption {
+      type = lib.types.bool;
+      # TODO maybe change to nul or
+      default = true;
+      description = ''
+        Enable systemd-resolved. Required on NixOS — without it, the
+        daemon's DNS configuration fails (it iterates resolved → resolvectl
+        → nmcli → resolvconf → /etc/resolv.conf, and every path fails) and
+        the connection rolls back after the WireGuard handshake succeeds.
+        Set this to false ONLY if you've enabled `services.resolved`
+        elsewhere in your config.
+      '';
+    };
+
+    setReversePath = lib.mkOption {
+      type = lib.types.nullOr (
+        lib.types.either lib.types.bool (
+          lib.types.enum [
+            "strict"
+            "loose"
+          ]
+        )
+      );
+      default = "loose";
+      description = ''
+        Set `networking.firewall.checkReversePath`. NordVPN's
+        asymmetric routing through the tunnel is dropped by default strict
+        rp_filter. Thus loose or false is required for proper functioning.
+      '';
+    };
+
+    openFirewall = mkOption {
+      type = types.bool;
+      default = false;
+      description = ''
+        Whether to open the firewall for NordVPN.
+        This add ports TCP 443 and UDP 1194 to the respective allowlists.
+      '';
+      example = true;
+    };
+
+    mtu = mkOption {
+      type = types.nullOr types.int;
+      default = null;
+      description = ''
+        MTU (max network package size) - smaller means more fragmentation,
+        but larger packages can fail to transmit. Leave empty to use the default,
+        set to something like `1280` if connection issues occur.
+        (Hint: you can test if MTU is low enough using `ping -M do -s 1280 1.1.1.1`,
+        replacing `1280` by the MTU you want to try. If too large, it will
+        fail with `ping: sendmsg: Message too long`.)
+      '';
+      example = 1280;
+    };
+
   };
 
-  options.services.nordvpn.users = mkOption {
-    type = types.listOf types.str;
-    default = [ ];
-    description = ''
-      Which users to add to the "nordvpn" group.
-      Your current user must be in the group for a successful
-      login. If you prefer to set this elsewhere, like
-      `users.users.<username>.extraGroups`, set this to `[]`.
-      Keep in mind that updating groups may require reboot/re-login.
-    '';
-    example = [ "alice" ];
-  };
+  config = lib.mkIf cfg.enable {
+    environment.systemPackages = [ nordVpnPkg ] ++ lib.optional cfg.enableGui nordVpnGui;
 
-  options.services.nordvpn.openFirewall = mkOption {
-    type = types.bool;
-    default = false;
-    description = ''
-      Whether to open the firewall for NordVPN.
-      This add ports TCP 443 and UDP 1194 to the respective allowlists.
-    '';
-    example = true;
-  };
-
-  options.services.nordvpn.checkReversePath = mkOption {
-    type = lib.types.nullOr (
-      lib.types.either lib.types.bool (
-        lib.types.enum [
-          "strict"
-          "loose"
-        ]
-      )
-    );
-    default = "loose";
-    description = ''
-      Set `networking.firewall.checkReversePath;` option
-      NordVPN seems to work best with value of false.
-      Defaults to loose since it probably won't work without it.
-      But it can be overriden if desired.
-    '';
-    example = false;
-  };
-
-  options.services.nordvpn.mtu = mkOption {
-    type = types.nullOr types.int;
-    default = null;
-    description = ''
-      MTU (max network package size) - smaller means more fragmentation,
-      but larger packages can fail to transmit. Leave empty to use the default,
-      set to something like `1280` if connection issues occur.
-      (Hint: you can test if MTU is low enough using `ping -M do -s 1280 1.1.1.1`,
-      replacing `1280` by the MTU you want to try. If too large, it will
-      fail with `ping: sendmsg: Message too long`.)
-    '';
-    example = 1280;
-  };
-
-  config = mkIf config.services.nordvpn.enable {
-    environment.systemPackages = [ nordVpnPkg ];
+    # if services.nordvpn.users is defined, add the specified users to the nordvpn group,
+    # otherwise ensure group exists by setting users.groups.nordvpn = {}
+    # changed to simpler on AI suggestion. For the (quickly accessible) record: used to be
+    # members = mkIf (config.services.nordvpn.users != [ ]) config.services.nordvpn.users;
+    users.groups.nordvpn.members = config.services.nordvpn.users;
 
     networking.firewall = {
       allowedTCPPorts = mkIf config.services.nordvpn.openFirewall [ 443 ];
       allowedUDPPorts = mkIf config.services.nordvpn.openFirewall [ 1194 ];
 
       checkReversePath = mkIf (
-        config.services.nordvpn.checkReversePath != null
-      ) config.services.nordvpn.checkReversePath;
+        config.services.nordvpn.setReversePath != null
+      ) config.services.nordvpn.setReversePath;
     };
 
     networking.interfaces = mkIf (config.services.nordvpn.mtu != null) {
       nordlynx.mtu = config.services.nordvpn.mtu;
     };
 
-    # if services.nordvpn.users is defined, add the specified users to the nordvpn group,
-    # otherwise ensure group exists by setting users.groups.nordvpn = {}
-    # changed to simpler on AI suggestion. For the (quickly accessible) record: used to be
-    # members = mkIf (config.services.nordvpn.users != [ ]) config.services.nordvpn.users;
-    users.groups.nordvpn = {
-      members = config.services.nordvpn.users;
+    services.resolved.enable = lib.mkIf cfg.enableResolved true;
+
+    systemd.services.nordvpn = {
+      description = "NordVPN daemon";
+      serviceConfig = {
+        ExecStart = "${nordVpnPkg}/bin/nordvpnd";
+        ExecStartPre = pkgs.writeShellScript "nordvpn-start" ''
+          mkdir -m 700 -p /var/lib/nordvpn
+          if [ -z "$(ls -A /var/lib/nordvpn)" ]; then
+            cp -r ${nordVpnPkg}/var/lib/nordvpn/* /var/lib/nordvpn
+            chmod -R u+w /var/lib/nordvpn
+          fi
+        '';
+        NonBlocking = true;
+        KillMode = "process";
+        Restart = "on-failure";
+        RestartSec = 5;
+        RuntimeDirectory = "nordvpn";
+        RuntimeDirectoryMode = "0750";
+        Group = "nordvpn";
+      };
+      after = [ "network-online.target" ];
+      wants = [ "network-online.target" ];
+      wantedBy = lib.mkIf cfg.autoStart [ "multi-user.target" ];
     };
 
-    systemd = {
-      services.nordvpn = {
-        description = "NordVPN daemon.";
-        serviceConfig = {
-          ExecStart = "${nordVpnPkg}/bin/nordvpnd";
-          ExecStartPre = pkgs.writeShellScript "nordvpn-start" ''
-            mkdir -m 700 -p /var/lib/nordvpn;
-            if [ -z "$(ls -A /var/lib/nordvpn)" ]; then
-              cp -r ${nordVpnPkg}/var/lib/nordvpn/* /var/lib/nordvpn;
-            fi
-          '';
-          NonBlocking = true;
-          KillMode = "process";
-          Restart = "on-failure";
-          RestartSec = 5;
-          RuntimeDirectory = "nordvpn";
-          RuntimeDirectoryMode = "0750";
-          Group = "nordvpn";
-        };
-        wantedBy = [ "multi-user.target" ];
-        after = [ "network-online.target" ];
-        wants = [ "network-online.target" ];
+    # Settings live in /var/lib/nordvpn (sqlite), which persists across rebuilds.
+    # Guarded by a marker file so this runs only on fresh state, not every boot.
+    # To re-apply: rm /var/lib/nordvpn/.nix-settings-applied && systemctl start nordvpn-settings
+    systemd.services.nordvpn-settings = {
+      description = "Apply NordVPN settings (first boot only)";
+      after = [ "nordvpn.service" ];
+      requires = [ "nordvpn.service" ];
+      # Pulled in whenever nordvpn.service starts; condition below makes it a no-op after first run.
+      wantedBy = [ "nordvpn.service" ];
+      unitConfig.ConditionPathExists = "!/var/lib/nordvpn/.nix-settings-applied";
+      serviceConfig = {
+        Type = "oneshot";
+        RemainAfterExit = true;
+
+        # AI suggests this instead, but i'm not conviced:
+        #       ExecStart = pkgs.writeShellScript "nordvpn-apply-settings" ''
+        # set -euo pipefail
+
+        # ready=0
+        # for _ in $(seq 1 10); do
+        #   if ${nordVpnPkg}/bin/nordvpn settings >/dev/null 2>&1; then
+        #     ready=1
+        #     break
+        #   fi
+        #   sleep 1
+        # done
+
+        # [ "$ready" -eq 1 ]
+
+        # ${nordVpnPkg}/bin/nordvpn set technology nordwhisper
+        # ${nordVpnPkg}/bin/nordvpn set threatprotectionlite on
+        # touch /var/lib/nordvpn/.nix-settings-applied
+        # '';
+
+        ExecStart = pkgs.writeShellScript "nordvpn-apply-settings" ''
+          # Bounded wait for daemon socket, not a long poll.
+          for _ in $(seq 1 10); do
+            ${nordVpnPkg}/bin/nordvpn settings >/dev/null 2>&1 && break
+            sleep 1
+          done
+          ${nordVpnPkg}/bin/nordvpn set technology nordwhisper
+          ${nordVpnPkg}/bin/nordvpn set threatprotectionlite on
+          touch /var/lib/nordvpn/.nix-settings-applied
+        '';
       };
     };
   };
