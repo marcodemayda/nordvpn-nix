@@ -1,40 +1,60 @@
-# nix_modules
+# nix-nordvpn
 
-This is a repo of nixos modules, for now it'll just have the nordvpn module and move from there.  I've just dumped things in the main dir but i'll break things out into sub directories when I have some downtime.
+This is a repo for nordvpn on nix.
+Forked from https://github.com/marcodemayda/nix_modules.
 
 
-## Nordvpn
+## How to use
 
-### How to use
-
-* Create a file in your nix config folder called `nordvpn.nix` and paste the contents there
-* In your `configuration.nix` add it to your imports
+- Copy `nordvpn-module.nix` into your configuration folder.
+- Add it in your imports, usually in `configuration.nix`.
 
 ```nix
   imports =
-    [ # Include the results of the hardware scan.
-      ./hardware-configuration.nix
-      ./nordvpn-module.nix
+    [
+    ./path/to/nordvpn-module.nix
     ];
 ```
 
-* In your configuration.nix file you will then need to add the following lines
+- In your configuration.nix file you will then need to add the following lines
 
 ```nix
   # NordVPN configuration
-  custom.services.nordvpn.enable = true;
-  users.groups.nordvpn.members = ["$YOUR_USERNAME"];
+  services.nordvpn =
+  {
+  enable = true;
+  users = [ "<your-user-name>" ];
+  };
 ```
 
-* Run `sudo nixos-rebuild switch` and it will install the package, then just login and start using!
-
+- Rebuild your system, usually with `sudo nixos-rebuild switch`.
+You'll want to login via the CLI with an API token, follow
+[NordVPN's instructions](https://support.nordvpn.com/hc/en-us/articles/20286980309265-How-to-log-in-to-NordVPN-without-a-GUI-using-a-token)
 
 ### Updating the package
 
-I'll try and keep this up to date, but if you need to do it yourself on line 27 you'll need to change the version.  You can find the latest version of the deb files [here](https://repo.nordvpn.com/deb/nordvpn/debian/pool/main/n/nordvpn/) get the version number i.e. 4.1.2 and replace the version
+As it stands, you'll want to update this package manually.
 
-Make the hash in line 34 an empty string `""` and then do `sudo nixos-rebuild switch` it will fail due to the hash being in correct, paste the correct hash into the string and then re-run `sudo nixos-rebuild switch` and it should build
+You can find the latest version of the `.deb` files [here](https://repo.nordvpn.com/deb/nordvpn/debian/pool/main/n/nordvpn/)
+get the version number e.g. `4.5.0` and replace the version in:
 
-### Troubleshooting
+```nix
+# MARK: version number here.
+version = "4.5.0";
+```
 
-I'm still learning nixos language so my understanding of this is very low (I'm trying, lol) but I'll do my best effort to take a look at what I can.
+You then have to match a hash to the version:
+
+```nix
+# MARK: hash here.
+hash = "sha256-bekJOzhLGwFsYRuPagANwUduyCufaU4XoJPwWoBniR8=";
+# hash = "sha256-0000000000000000000000000000000000000000000=";
+```
+
+If you build with the fake one (uncoment it and comment the other),
+nix should fail the build, and give you the correct hash in the error message.
+
+### Notice
+
+Both I and the original author (chomes) are by
+self-admitedly inexperienced with making Nix derivation.
