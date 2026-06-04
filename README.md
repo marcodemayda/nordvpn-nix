@@ -46,19 +46,19 @@ You then have to match a hash to the version. Find the links in the
 module
 ```
 nix store prefetch-file --hash-type sha256 \
-<link to cliUrl/guiUrl>
+<url>
 ```
 
 Alternatively you can build with a dummy hash, and Nix will throw
-the correct hash in the rebuild error.
+the correct hash in the rebuild error. Temporarily set
 
 ```nix
 # MARK: Modify Values Here
 #...
-
-#hash = "sha256-bekJOzhLGwFsYRuPagANwUduyCufaU4XoJPwWoBniR8=";
- hash = "sha256-0000000000000000000000000000000000000000000=";
+dummyHash = "sha256-0000000000000000000000000000000000000000000=";
+cliHash = dummyHash
 ```
+And the modify back as needed
 
 ### Notice
 
@@ -66,5 +66,5 @@ Both I and the original author (chomes) are by
 self-admitedly inexperienced with making Nix derivation.
 
 Lallapallooza and morettimarco contributions (seem to) have heavy AI usage.
-I've audited (insofar as I'm able), and explicitly comment on any AI code
+I've audited (insofar as I'm able, which isn't much), and explicitly comment on any AI code
 that _**I** introduced myself_.
