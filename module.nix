@@ -257,6 +257,27 @@ in
       serviceConfig = {
         Type = "oneshot";
         RemainAfterExit = true;
+
+        # AI suggests this instead, but i'm not conviced:
+        #       ExecStart = pkgs.writeShellScript "nordvpn-apply-settings" ''
+        # set -euo pipefail
+
+        # ready=0
+        # for _ in $(seq 1 10); do
+        #   if ${nordVpnPkg}/bin/nordvpn settings >/dev/null 2>&1; then
+        #     ready=1
+        #     break
+        #   fi
+        #   sleep 1
+        # done
+
+        # [ "$ready" -eq 1 ]
+
+        # ${nordVpnPkg}/bin/nordvpn set technology nordwhisper
+        # ${nordVpnPkg}/bin/nordvpn set threatprotectionlite on
+        # touch /var/lib/nordvpn/.nix-settings-applied
+        # '';
+
         ExecStart = pkgs.writeShellScript "nordvpn-apply-settings" ''
           # Bounded wait for daemon socket, not a long poll.
           for _ in $(seq 1 10); do
