@@ -57,6 +57,7 @@ the correct hash in the rebuild error. Temporarily set
 #...
 dummyHash = "sha256-0000000000000000000000000000000000000000000=";
 cliHash = dummyHash
+guiHash = dummyHash
 ```
 And the modify back as needed
 
