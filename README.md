@@ -1,23 +1,21 @@
 # nix-nordvpn
 
-This is a repo for nordvpn on nix.
-Forked from https://github.com/marcodemayda/nix_modules.
-
+NordVPN on Nix. There is an official package hopefully coming soon,
+you can check the [PR](https://github.com/NixOS/nixpkgs/pull/406725);
+but in the meanwhile...
 
 ## How to use
 
 - Copy `nordvpn-module.nix` into your configuration folder.
-- Add it in your imports, usually in `configuration.nix`.
-
+- Add it in your imports, usually in `configuration.nix`:
 ```nix
   imports =
     [
-    ./path/to/nordvpn-module.nix
+    ./relative/path/to/nordvpn-module.nix
     ];
 ```
 
-- In your configuration.nix file you will then need to add the following lines
-
+- In your configuration.nix file add the following:
 ```nix
   # NordVPN configuration
   services.nordvpn =
@@ -28,38 +26,39 @@ Forked from https://github.com/marcodemayda/nix_modules.
 ```
 
 - Rebuild your system, usually with `sudo nixos-rebuild switch`.
+
 You'll want to login via the CLI with an API token, follow
 [NordVPN's instructions](https://support.nordvpn.com/hc/en-us/articles/20286980309265-How-to-log-in-to-NordVPN-without-a-GUI-using-a-token)
 
 ### Updating the package
 
-As it stands, you'll want to update this package manually.
+As it stands, you'll want to update this module manually.
 
 You can find the latest version of the `.deb` files [here](https://repo.nordvpn.com/deb/nordvpn/debian/pool/main/n/nordvpn/)
 get the version number e.g. `4.5.0` and replace the version in:
 
 ```nix
-# MARK: version number here.
-version = "4.5.0";
+  # MARK: Modify Values Here
+  version = "4.5.0";
 ```
 
-You then have to match a hash to the version.
+You then have to match a hash to the version. Find the links in the
+module
 ```
 nix store prefetch-file --hash-type sha256 \
-  https://repo.nordvpn.com/deb/nordvpn/debian/pool/main/n/nordvpn/nordvpn_<${version}>_amd64.deb
+<link to cliUrl/guiUrl>
 ```
 
-Alternatively you can build witha dummy hash, and Nix will throw
+Alternatively you can build with a dummy hash, and Nix will throw
 the correct hash in the rebuild error.
 
 ```nix
-# MARK: hash here.
+# MARK: Modify Values Here
+#...
+
 #hash = "sha256-bekJOzhLGwFsYRuPagANwUduyCufaU4XoJPwWoBniR8=";
  hash = "sha256-0000000000000000000000000000000000000000000=";
 ```
-
-If you build with the fake one (uncoment it and comment the other),
-nix should fail the build, and give you the correct hash in the error message.
 
 ### Notice
 

@@ -8,8 +8,13 @@
 let
   # MARK: Modify Values Here
   version = "4.5.0";
+
+  cliUrl = "https://repo.nordvpn.com/deb/nordvpn/debian/pool/main/n/nordvpn/nordvpn_${version}_amd64.deb";
   cliHash = "sha256-bekJOzhLGwFsYRuPagANwUduyCufaU4XoJPwWoBniR8=";
+
+  guiUrl = "https://repo.nordvpn.com/deb/nordvpn/debian/pool/main/n/nordvpn-gui/nordvpn-gui_${version}_amd64.deb";
   guiHash = "sha256-V1eOPudlBhVH5cSjp9qtpL6zJDSq4e9MQ8YZXnMcH84=";
+
   cfg = config.services.nordvpn;
 
   # -- CLI + daemon (FHS-wrapped) ----------------------------------------
@@ -17,7 +22,7 @@ let
     pname = "nordvpn-base";
     inherit version cliHash;
     src = pkgs.fetchurl {
-      url = "https://repo.nordvpn.com/deb/nordvpn/debian/pool/main/n/nordvpn/nordvpn_${version}_amd64.deb";
+      url = cliUrl;
       hash = cliHash;
     };
     buildInputs = with pkgs; [
@@ -99,7 +104,7 @@ let
     pname = "nordvpn-gui-base";
     inherit version guiHash;
     src = pkgs.fetchurl {
-      url = "https://repo.nordvpn.com/deb/nordvpn/debian/pool/main/n/nordvpn-gui/nordvpn-gui_${version}_amd64.deb";
+      url = guiUrl;
       hash = guiHash;
     };
     nativeBuildInputs = [ pkgs.dpkg ];
