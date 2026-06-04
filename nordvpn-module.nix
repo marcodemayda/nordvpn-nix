@@ -37,7 +37,7 @@ let
         src = fetchurl {
           url = "https://repo.nordvpn.com/deb/nordvpn/debian/pool/main/n/nordvpn/nordvpn_${version}_amd64.deb";
           # MARK: hash here.
-          hash = "sha256-F7/5WAAGaX3IJ3v/psp9cyWGs7kn2XOiCSN2Q6zeRAY=";
+          hash = "sha256-bekJOzhLGwFsYRuPagANwUduyCufaU4XoJPwWoBniR8=";
           # hash = "sha256-0000000000000000000000000000000000000000000=";
         };
 
@@ -150,8 +150,7 @@ with lib;
     default = false;
     description = ''
       Whether to open the firewall for NordVPN.
-      This includes setting
-      adding ports TCP 443 and UDP 1194 to the respective allowlists.
+      This add ports TCP 443 and UDP 1194 to the respective allowlists.
     '';
     example = true;
   };
@@ -165,12 +164,12 @@ with lib;
         ]
       )
     );
-    default = null;
+    default = "loose";
     description = ''
       Set `networking.firewall.checkReversePath;` option
-      NordVPN works best with value of false.
-      But you may want a different value (eg EduVPN works best with
-      "loose" instead)
+      NordVPN seems to work best with value of false.
+      Defaults to loose since it probably won't work without it.
+      But it can be overriden if desired.
     '';
     example = false;
   };
@@ -207,8 +206,8 @@ with lib;
 
     # if services.nordvpn.users is defined, add the specified users to the nordvpn group,
     # otherwise ensure group exists by setting users.groups.nordvpn = {}
+    # changed to simpler on AI suggestion. For the (quickly accessible) record: used to be
     # members = mkIf (config.services.nordvpn.users != [ ]) config.services.nordvpn.users;
-    # changed to simpler on AI suggestion.
     users.groups.nordvpn = {
       members = config.services.nordvpn.users;
     };
