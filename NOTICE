@@ -1,0 +1,12 @@
+Modified from various upstreams, some of which licensed Apache-2.0.
+
+Lineage:
+   - https://github.com/chomes/nix_modules
+	CLI base. Originally licensed MIT
+   - https://github.com/Lallapallooza/simple_nix
+	adds GUI extension. Originally licensed Apache-2.0
+   - https://github.com/morettimarco/nordvpn-nixos
+	adds various fixups, documentation, and flake.
+	Originally licensed Apache-2.0.
+
+This repository contains further modifications

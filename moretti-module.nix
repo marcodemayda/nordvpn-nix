@@ -1,12 +1,3 @@
-# NordVPN CLI (`nordvpn`), daemon (`nordvpnd`), and official Flutter/GTK3 GUI
-# as a single NixOS module.
-#
-# Lineage:
-#   - https://github.com/chomes/nix_modules (CLI base, MIT)
-#   - https://github.com/Lallapallooza/simple_nix (GUI extension, Apache-2.0)
-#   - This repo: standalone flake packaging, configurable options, systemd-
-#     resolved requirement made explicit, comprehensive README.
-
 {
   config,
   lib,

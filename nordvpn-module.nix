@@ -1,3 +1,5 @@
+# Modified from various upstreams; see NOTICE for lineage and attribution.
+
 {
   config,
   lib,
