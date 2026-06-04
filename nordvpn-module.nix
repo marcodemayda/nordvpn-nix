@@ -180,9 +180,9 @@ with lib;
       description = ''
         Which users to add to the "nordvpn" group.
         Your current user must be in the group for a successful
-        login. If you prefer to set this elsewhere, like
-        `users.users.<username>.extraGroups`, set this to `[]`.
-        Keep in mind that updating groups may require reboot/re-login.
+        login and usage. You may also  this elsewhere with
+        `users.users.<username>.extraGroups`.
+        Updating groups may require reboot/re-login.
       '';
       example = [ "alice" ];
     };
@@ -192,18 +192,18 @@ with lib;
       default = false;
       description = ''
         Whether to install the official NordVPN GUI app (Flutter/GTK3).
-        Set to false for a CLI-only install.
       '';
     };
 
     autoStart = mkOption {
       type = bool;
-      default = false;
+      default = true;
       description = ''
-        Whether to start nordvpnd at boot. Defaults to false (on-demand)
-        because typical laptop usage starts the VPN per session. Set to
-        true together with `nordvpn set autoconnect on <country>` for
-        always-on VPN.
+        Whether to start nordvpnd at boot. Note
+        when set to false, running the NordVPN
+        app does not suffice to start its services.
+        In such case youll have to manually run
+        relevant systemctl (the app will guide you).
       '';
     };
 
