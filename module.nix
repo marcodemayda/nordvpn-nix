@@ -6,18 +6,19 @@
 }:
 
 let
-  # MARK: verion nr.
+  # MARK: Modify Values Here
   version = "4.5.0";
+  cliHash = "sha256-bekJOzhLGwFsYRuPagANwUduyCufaU4XoJPwWoBniR8=";
+  guiHash = "sha256-V1eOPudlBhVH5cSjp9qtpL6zJDSq4e9MQ8YZXnMcH84=";
   cfg = config.services.nordvpn;
 
   # -- CLI + daemon (FHS-wrapped) ----------------------------------------
   nordVpnBase = pkgs.stdenv.mkDerivation {
     pname = "nordvpn-base";
-    inherit version;
+    inherit version cliHash;
     src = pkgs.fetchurl {
       url = "https://repo.nordvpn.com/deb/nordvpn/debian/pool/main/n/nordvpn/nordvpn_${version}_amd64.deb";
-      # MARK: cli-hash
-      hash = "sha256-bekJOzhLGwFsYRuPagANwUduyCufaU4XoJPwWoBniR8=";
+      hash = cliHash;
     };
     buildInputs = with pkgs; [
       libxml2
@@ -96,11 +97,10 @@ let
   # -- GUI (Flutter/GTK3, FHS-wrapped) -----------------------------------
   nordVpnGuiBase = pkgs.stdenv.mkDerivation {
     pname = "nordvpn-gui-base";
-    inherit version;
+    inherit version guiHash;
     src = pkgs.fetchurl {
       url = "https://repo.nordvpn.com/deb/nordvpn/debian/pool/main/n/nordvpn-gui/nordvpn-gui_${version}_amd64.deb";
-      # MARK: gui-hash
-      hash = "sha256-V1eOPudlBhVH5cSjp9qtpL6zJDSq4e9MQ8YZXnMcH84=";
+      hash = guiHash;
     };
     nativeBuildInputs = [ pkgs.dpkg ];
     dontConfigure = true;
