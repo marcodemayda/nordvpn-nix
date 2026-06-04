@@ -150,8 +150,7 @@ with lib;
     default = false;
     description = ''
       Whether to open the firewall for NordVPN.
-      This includes setting
-      adding ports TCP 443 and UDP 1194 to the respective allowlists.
+      This add ports TCP 443 and UDP 1194 to the respective allowlists.
     '';
     example = true;
   };
@@ -165,12 +164,12 @@ with lib;
         ]
       )
     );
-    default = null;
+    default = "loose";
     description = ''
       Set `networking.firewall.checkReversePath;` option
-      NordVPN works best with value of false.
-      But you may want a different value (eg EduVPN works best with
-      "loose" instead)
+      NordVPN seems to work best with value of false.
+      Defaults to loose since it probably won't work without it.
+      But it can be overriden if desired.
     '';
     example = false;
   };

@@ -1,6 +1,7 @@
 # nix-nordvpn
 
-This is a repo for nordvpn on nix. Forked from https://github.com/marcodemayda/nix_modules.
+This is a repo for nordvpn on nix.
+Forked from https://github.com/marcodemayda/nix_modules.
 
 
 ## How to use
@@ -11,7 +12,7 @@ This is a repo for nordvpn on nix. Forked from https://github.com/marcodemayda/n
 ```nix
   imports =
     [
-    ./<relative-path-to>/nordvpn-module.nix
+    ./path/to/nordvpn-module.nix
     ];
 ```
 
@@ -19,17 +20,16 @@ This is a repo for nordvpn on nix. Forked from https://github.com/marcodemayda/n
 
 ```nix
   # NordVPN configuration
-  services.nordvpn.enable = true;
-  users.groups.nordvpn.members = ["<YOUR_USERNAME>"];
+  services.nordvpn =
+  {
+  enable = true;
+  users = [ "<your-user-name>" ];
+  };
 ```
 
 - Rebuild your system, usually with `sudo nixos-rebuild switch`.
 You'll want to login via the CLI with an API token, follow
 [NordVPN's instructions](https://support.nordvpn.com/hc/en-us/articles/20286980309265-How-to-log-in-to-NordVPN-without-a-GUI-using-a-token)
-
-### Options
-
-
 
 ### Updating the package
 
@@ -51,10 +51,10 @@ hash = "sha256-bekJOzhLGwFsYRuPagANwUduyCufaU4XoJPwWoBniR8=";
 # hash = "sha256-0000000000000000000000000000000000000000000=";
 ```
 
-If you build with the fake one, nix should fail the build,
-and give you the correct hash in the error message.
+If you build with the fake one (uncoment it and comment the other),
+nix should fail the build, and give you the correct hash in the error message.
 
 ### Notice
 
-Both I and the original author are by
+Both I and the original author (chomes) are by
 self-admitedly inexperienced with making Nix derivation.
