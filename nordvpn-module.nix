@@ -7,15 +7,15 @@
 
 let
   # MARK: Modify Values Here
-  version = "5.0.0";
+  version = "5.1.0";
 
   dummyHash = "sha256-0000000000000000000000000000000000000000000=";
 
   cliUrl = "https://repo.nordvpn.com/deb/nordvpn/debian/pool/main/n/nordvpn/nordvpn_${version}_amd64.deb";
-  cliHash = "sha256-F7/5WAAGaX3IJ3v/psp9cyWGs7kn2XOiCSN2Q6zeRAY=";
+  cliHash = "sha256-10Cfjjy5AQ88ZdFRLyjnR2aL6roGroa0/SuFu2nuD8k=";
 
   guiUrl = "https://repo.nordvpn.com/deb/nordvpn/debian/pool/main/n/nordvpn-gui/nordvpn-gui_${version}_amd64.deb";
-  guiHash = "sha256-Obdnf3Rp0gfbRKa2awz6lMN1z0J6KyL09jTivQej/Eo=";
+  guiHash = "sha256-IOLLy0ThhcDFTm+su0R6LIPNbsmmAqFkBXs5KbvXtjY=";
 
   cfg = config.services.nordvpn;
 
@@ -180,9 +180,9 @@ with lib;
       description = ''
         Which users to add to the "nordvpn" group.
         Your current user must be in the group for a successful
-        login and usage. You may also  this elsewhere with
-        `users.users.<username>.extraGroups`.
-        Updating groups may require reboot/re-login.
+        login. If you prefer to set this elsewhere, like
+        `users.users.<username>.extraGroups`, set this to `[]`.
+        Keep in mind that updating groups may require reboot/re-login.
       '';
       example = [ "alice" ];
     };
@@ -192,24 +192,23 @@ with lib;
       default = false;
       description = ''
         Whether to install the official NordVPN GUI app (Flutter/GTK3).
+        Set to false for a CLI-only install.
       '';
     };
 
     autoStart = mkOption {
       type = bool;
-      default = true;
+      default = false;
       description = ''
-        Whether to start nordvpnd at boot. Note
-        when set to false, running the NordVPN
-        app does not suffice to start its services.
-        In such case youll have to manually run
-        relevant systemctl (the app will guide you).
+        Whether to start nordvpnd at boot. Defaults to false (on-demand)
+        because typical laptop usage starts the VPN per session. Set to
+        true together with `nordvpn set autoconnect on <country>` for
+        always-on VPN.
       '';
     };
 
     enableResolved = mkOption {
       type = bool;
-      # TODO maybe change to nul or
       default = true;
       description = ''
         Enable systemd-resolved. Required on NixOS — without it, the
@@ -323,26 +322,6 @@ with lib;
       serviceConfig = {
         Type = "oneshot";
         RemainAfterExit = true;
-
-        # AI suggests this instead, TODO investigate
-        #       ExecStart = pkgs.writeShellScript "nordvpn-apply-settings" ''
-        # set -euo pipefail
-
-        # ready=0
-        # for _ in $(seq 1 10); do
-        #   if ${nordVpnPkg}/bin/nordvpn settings >/dev/null 2>&1; then
-        #     ready=1
-        #     break
-        #   fi
-        #   sleep 1
-        # done
-
-        # [ "$ready" -eq 1 ]
-
-        # ${nordVpnPkg}/bin/nordvpn set technology nordwhisper
-        # ${nordVpnPkg}/bin/nordvpn set threatprotectionlite on
-        # touch /var/lib/nordvpn/.nix-settings-applied
-        # '';
 
         ExecStart = pkgs.writeShellScript "nordvpn-apply-settings" ''
           # Bounded wait for daemon socket, not a long poll.
