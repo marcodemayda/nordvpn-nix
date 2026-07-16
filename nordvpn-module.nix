@@ -12,10 +12,10 @@ let
   dummyHash = "sha256-0000000000000000000000000000000000000000000=";
 
   cliUrl = "https://repo.nordvpn.com/deb/nordvpn/debian/pool/main/n/nordvpn/nordvpn_${version}_amd64.deb";
-  cliHash = "sha256-10Cfjjy5AQ88ZdFRLyjnR2aL6roGroa0/SuFu2nuD8k=";
+  cliHash = "sha256-mFBwH1iedC5NksQ+7h8hiCYt23H0DlRT06KteVA9uJs=";
 
   guiUrl = "https://repo.nordvpn.com/deb/nordvpn/debian/pool/main/n/nordvpn-gui/nordvpn-gui_${version}_amd64.deb";
-  guiHash = "sha256-IOLLy0ThhcDFTm+su0R6LIPNbsmmAqFkBXs5KbvXtjY=";
+  guiHash = "sha256-AQBQnkndKS4T7oFFjPv9gqU4B74rBW+4wem9ev/4KeY=";
 
   cfg = config.services.nordvpn;
 
