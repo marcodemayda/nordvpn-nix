@@ -5,9 +5,9 @@
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
   };
 
-  outputs = { self, ... }: {
+  outputs = {
     nixosModules.nordvpn = {
-      imports = [ ./module.nix ];
+      imports = [ ./nordvpn-module.nix.nix ];
       services.nordvpn = {
         enable = true;
       };
