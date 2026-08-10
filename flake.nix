@@ -7,7 +7,7 @@
 
   outputs = {
     nixosModules.nordvpn = {
-      imports = [ ./nordvpn-module.nix.nix ];
+      imports = [ ./nordvpn-module.nix ];
       services.nordvpn = {
         enable = true;
       };
