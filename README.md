@@ -4,7 +4,10 @@ NordVPN on Nix. There is an official package hopefully coming soon,
 you can check the [PR](https://github.com/NixOS/nixpkgs/pull/406725);
 but in the meanwhile...
 
-## How to use
+
+
+
+## Install
 
 ### Flake
 
@@ -48,7 +51,7 @@ Note: importing the flake automatically enables the service, you need only speci
 If (for some obscure reason) you want to import without enabling, explicitly declare `services.nordvpn.enable = false`
 
 
-### Module
+### Manual Module
 
 - Copy `nordvpn-module.nix` into your configuration folder.
 - Add it in your imports, usually in `configuration.nix`:
@@ -71,12 +74,9 @@ If (for some obscure reason) you want to import without enabling, explicitly dec
 
 - Rebuild your system, usually with `sudo nixos-rebuild switch`.
 
-You'll want to login via the CLI with an API token, follow
-[NordVPN's instructions](https://support.nordvpn.com/hc/en-us/articles/20286980309265-How-to-log-in-to-NordVPN-without-a-GUI-using-a-token)
-
 #### Updating the package
 
-As it stands, you'll want to update this module manually.
+If you're doing things manually, you'll need to run updates yourself:
 
 You can find the latest version of the `.deb` files [here](https://repo.nordvpn.com/deb/nordvpn/debian/pool/main/n/nordvpn/)
 get the version number e.g. `4.5.0` and replace the version in:
@@ -104,6 +104,14 @@ cliHash = dummyHash
 guiHash = dummyHash
 ```
 And the modify back as needed
+
+## Usage
+
+You'll want to login via the CLI with an API token, follow
+[NordVPN's instructions](https://support.nordvpn.com/hc/en-us/articles/20286980309265-How-to-log-in-to-NordVPN-without-a-GUI-using-a-token).
+I suggest setting up a [sops-nix](https://github.com/Mic92/sops-nix) or [agenix](https://github.com/ryantm/agenix) secret service so you always have it on hand on any device :).
+
+Then usage is straightforward both with CLI and GUI.
 
 ## Notice
 
