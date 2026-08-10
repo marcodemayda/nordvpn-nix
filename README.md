@@ -6,6 +6,50 @@ but in the meanwhile...
 
 ## How to use
 
+### Flake
+
+If you have flakes, you can pull this module directly, and don't have to worry about
+updating yourself.
+
+In your flake.nix merge values with:
+
+```nix
+  inputs = {
+    pkgs-unstable.url = "github:NixOS/nixpkgs/nixos-unstable"; # or whatever channel you like
+
+    nordvpn = {
+      url = "git+https://codeberg.org/marcodemayda/nordvpn-nix";
+      # url = "github:marcodemayda/nordvpn-nix"; # github if you prefer, but i'm less active so it might be slower to update
+
+      # inputs.nixpkgs.follows = "pkgs-unstable"; # change this to a different input if you want
+    };
+  };
+
+  outputs =
+    {
+      self,
+      pkgs-unstable,
+      nordvpn,
+      ...
+    }:
+    {
+      nixosModules.nordvpn = {
+
+        imports = [
+          nordvpn.nixosModules.nordvpn
+        ];
+        services.nordvpn.enable =true;
+      };
+    };
+```
+
+Note: importing the flake automatically enables the service, you need only specify options. Make sure you add your user to nordvpn group with `services.nordvpn.users = ["<youruser>" ];`
+
+If (for some obscure reason) you want to import without enabling, explicitly declare `services.nordvpn.enable = false`
+
+
+### Module
+
 - Copy `nordvpn-module.nix` into your configuration folder.
 - Add it in your imports, usually in `configuration.nix`:
 ```nix
@@ -30,7 +74,7 @@ but in the meanwhile...
 You'll want to login via the CLI with an API token, follow
 [NordVPN's instructions](https://support.nordvpn.com/hc/en-us/articles/20286980309265-How-to-log-in-to-NordVPN-without-a-GUI-using-a-token)
 
-### Updating the package
+#### Updating the package
 
 As it stands, you'll want to update this module manually.
 
@@ -61,7 +105,7 @@ guiHash = dummyHash
 ```
 And the modify back as needed
 
-### Notice
+## Notice
 
 Both I and the original author (chomes) are
 self-admitedly inexperienced with making Nix derivation.
