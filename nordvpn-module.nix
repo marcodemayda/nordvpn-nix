@@ -198,7 +198,7 @@ with lib;
 
     autoStart = mkOption {
       type = bool;
-      default = false;
+      default = true;
       description = ''
         Whether to start nordvpnd at boot. Defaults to false (on-demand)
         because typical laptop usage starts the VPN per session. Set to
