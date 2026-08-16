@@ -1,9 +1,10 @@
 # nix-nordvpn
 
-NordVPN on Nix. There is an official package hopefully coming soon,
-you can check the [PR](https://github.com/NixOS/nixpkgs/pull/406725);
-but in the meanwhile...
+Derivation for NordVPN on Nix.
 
+NordVPN now has an official module! It is currently on unstable.
+Once it gets to stable I'll stop updating this custom module (assuming
+the official one works better, which I bet it will).
 
 
 
