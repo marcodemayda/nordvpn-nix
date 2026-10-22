@@ -15,7 +15,7 @@ let
   cliHash = "sha256-SYQ+zPNHfLapX9qXMYNcIa+Ittel0EkvuYF31vsDp3k=";
 
   guiUrl = "https://repo.nordvpn.com/deb/nordvpn/debian/pool/main/n/nordvpn-gui/nordvpn-gui_${version}_amd64.deb";
-  guiHash = "https://repo.nordvpn.com/deb/nordvpn/debian/pool/main/n/nordvpn-gui/nordvpn-gui_${version}_amd64.deb";
+  guiHash = "sha256-etnXMT324pcYvKiMHkuNvVFV0OqUT8PF7g5MQgY0rw0=";
 
   cfg = config.services.nordvpn;
 
