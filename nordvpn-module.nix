@@ -7,15 +7,15 @@
 
 let
   # MARK: Modify Values Here
-  version = "6.0.2";
+  version = "6.1.0";
 
   dummyHash = "sha256-0000000000000000000000000000000000000000000=";
 
   cliUrl = "https://repo.nordvpn.com/deb/nordvpn/debian/pool/main/n/nordvpn/nordvpn_${version}_amd64.deb";
-  cliHash = "sha256-gd95B8qM1U4O0ItSId1r4rwqrJxHMAYlv5SUqN6pQ+E=";
+  cliHash = "sha256-+LVIm6uytn+0ncjtiRueQjB4gx27OtJ2+uHlxiVHMfs=";
 
   guiUrl = "https://repo.nordvpn.com/deb/nordvpn/debian/pool/main/n/nordvpn-gui/nordvpn-gui_${version}_amd64.deb";
-  guiHash = "sha256-SxpeqfmAlFevMfmnA2PO2dRXWTy4aflI2d35NB/jKWg=";
+  guiHash = "sha256-ApdJbnwcDuA4eW/LYC/BXFDmum0K6gQVJz73qjgpmGg=";
 
   cfg = config.services.nordvpn;
 
